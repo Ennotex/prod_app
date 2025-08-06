@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Contrôle Production - Ennotex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://ennotex.github.io/assets/background-bat.svg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    button {
+      display: block;
+      width: 100%;
+      margin: 15px 0;
+      padding: 12px;
+      font-size: 16px;
+      background-color: #0d8340;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #content, #unauthorized {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Connexion - Contrôle de production</h2>
+    <div id="login">
+      <button onclick="login()">Se connecter avec Google</button>
+    </div>
+    <div id="unauthorized">
+      <p style="color: red;">⛔ Accès refusé. Votre compte n'est pas autorisé.</p>
+    </div>
+    <div id="content">
+      <h3>Bienvenue sur le contrôle qualité</h3>
+      <button onclick="window.open('https://drive.google.com/uc?id=ID_BAT', '_blank')">📄 Visualiser le BAT</button>
+      <button onclick="window.open('https://tally.so/r/FORM_ID_1', '_blank')">📸 Envoyer fichiers de production</button>
+      <button onclick="window.open('https://tally.so/r/FORM_ID_2', '_blank')">📷 Comparer BAT vs. test</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/12.0.0/firebase-auth-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDz_YfXugbMpHi50THbdECEk93BGhsm1AQ",
+      authDomain: "ennotex-prod-app.firebaseapp.com",
+      projectId: "ennotex-prod-app",
+      storageBucket: "ennotex-prod-app.firebasestorage.app",
+      messagingSenderId: "29151733907",
+      appId: "1:29151733907:web:329ae1450600c6940f8566",
+      measurementId: "G-ZLNRR23XWQ"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const allowedEmails = [
+      "prod1@ennotex.fr",
+      "atelier@ennotex.fr"
+    ];
+
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).then((result) => {
+        const email = result.user.email;
+        if (allowedEmails.includes(email)) {
+          document.getElementById("login").style.display = "none";
+          document.getElementById("content").style.display = "block";
+        } else {
+          auth.signOut();
+          document.getElementById("login").style.display = "none";
+          document.getElementById("unauthorized").style.display = "block";
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+    }
+  </script>
+</body>
+</html>
