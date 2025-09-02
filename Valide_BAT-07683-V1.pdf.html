@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validation de production - Valide_BAT-07683-V1.pdf</title>
+
+  <!-- AJOUT IP GUARD -->
+  <style>body{visibility:hidden}</style>
+  <script>
+    const ALLOWED_IPS = new Set([
+      "82.96.163.201",
+      "82.96.163.204",
+      "2a05:6e02:107e:a210:9def:2a7a:37c2:ab65"
+    ]);
+    function deny(){
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif">
+          <div style="max-width:560px;padding:24px;border-radius:12px;box-shadow:0 0 12px rgba(0,0,0,.1);background:#fff;text-align:center">
+            <h2 style="margin:0 0 8px">Accès refusé</h2>
+            <p style="margin:0 0 16px">Cette page est réservée aux ateliers ENNOTEX.</p>
+            <small style="color:#666">Si vous êtes sur site, vérifiez que vous êtes connecté au Wi-Fi de l’atelier.</small>
+          </div>
+        </div>`;
+      document.body.style.visibility = "visible";
+    }
+    (async () => {
+      try {
+        let ip = "";
+        try {
+          const r = await fetch("https://api64.ipify.org?format=json",{cache:"no-store"});
+          ip = (await r.json()).ip || "";
+        } catch {}
+        if (!ip) {
+          const r4 = await fetch("https://api.ipify.org?format=json",{cache:"no-store"});
+          ip = (await r4.json()).ip || "";
+        }
+        ip = ip.toLowerCase();
+        if (ALLOWED_IPS.has(ip)) document.body.style.visibility = "visible";
+        else deny();
+      } catch { deny(); }
+    })();
+  </script>
+  <noscript>
+    <style>body{visibility:visible}</style>
+    <div style="padding:16px;background:#fff3cd;color:#664d03;text-align:center">
+      JavaScript requis pour accéder à cette page.
+    </div>
+  </noscript>
+  <!-- /AJOUT IP GUARD -->
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://ennotex.github.io/assets/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 { margin-bottom: 20px; }
+    button {
+      margin: 10px 0;
+      padding: 15px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #0033cc;
+      color: white;
+      transition: background-color 0.2s ease;
+    }
+    button:hover { background-color: #001a80; }
+    .drive { background-color: #28a745; }
+    .drive:hover { background-color: #1c7c31; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Valide_BAT-07683-V1.pdf</h1>
+    <p>Merci de suivre les étapes de validation ci-dessous :</p>
+    <button onclick="window.open('https://drive.google.com/file/d/1yznc7KHKsYmrnNffXTx-RfjlGg1vB62l/preview', '_blank')">📄 Visualiser le BAT</button><br>
+    <button onclick="window.open('https://forms.fillout.com/t/jmLpPYCEfxus?ref=1Hu9pJZxCyHodNhJqEREb1pGF0MS0Qc5h', '_blank')">📸 Envoyer les fichiers de production</button><br>
+    <button onclick="window.open('', '_blank')">🔍 Comparer le BAT et le premier test</button><br>
+    <button class="drive" onclick="window.open('https://drive.google.com/drive/folders/1Hu9pJZxCyHodNhJqEREb1pGF0MS0Qc5h', '_blank')">📂 Accéder au Dossier</button>
+  </div>
+</body>
+</html>
