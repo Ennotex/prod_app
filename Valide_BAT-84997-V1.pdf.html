@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validation de production - Valide_BAT-84997-V1.pdf</title>
+
+  <!-- Sécurité IP -->
+  <style>body{visibility:hidden}</style>
+  <script>
+    const ALLOWED_IPS = new Set([
+      "82.96.163.201",
+      "82.96.163.204",
+      "82.96.163.*",
+      "2a05:6e02:1040:6a10:6f17:81a7:c037:8e32",
+      "2a05:6e02:1040:6a10:cce2:e54f:713e:a228",
+"2a05:6e02:1040:6a10:29ff:7c92:cf99:414c",      "2a05:6e02:1040:6a10:e555:3a61:d8b5:af3"
+    ]);
+    function deny(){
+      document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:Arial,sans-serif"><div style="max-width:560px;padding:24px;border-radius:12px;box-shadow:0 0 12px rgba(0,0,0,.1);background:#fff;text-align:center"><h2>Accès refusé</h2><p>Page réservée aux ateliers ENNOTEX.</p><small style="color:#666">Si vous êtes sur site, vérifiez le réseau de l’atelier.</small></div></div>`;
+      document.body.style.visibility = "visible";
+    }
+    (async () => {
+      try {
+        let ip = "";
+        try {
+          const r = await fetch("https://api64.ipify.org?format=json",{cache:"no-store"});
+          ip = (await r.json()).ip || "";
+        } catch {}
+        if (!ip) {
+          const r4 = await fetch("https://api.ipify.org?format=json",{cache:"no-store"});
+          ip = (await r4.json()).ip || "";
+        }
+        ip = ip.toLowerCase();
+        window.__client_ip = ip;
+        if (ALLOWED_IPS.has(ip)) document.body.style.visibility = "visible";
+        else deny();
+      } catch { deny(); }
+    })();
+  </script>
+  <noscript>
+    <style>body{visibility:visible}</style>
+    <div style="padding:16px;background:#fff3cd;color:#664d03;text-align:center">
+      JavaScript requis pour accéder à cette page.
+    </div>
+  </noscript>
+
+  <!-- Styles -->
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://ennotex.github.io/assets/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 { margin-bottom: 20px; }
+
+    /* --- BOUTONS --- */
+    button {
+      margin: 10px 0;
+      padding: 15px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      transition: background-color 0.2s ease;
+    }
+    /* boutons bleus d’origine */
+    button:not(.drive):not(.gls):not(.showroom) {
+      background-color: #0033cc;
+    }
+    button:not(.drive):not(.gls):not(.showroom):hover {
+      background-color: #001a80;
+    }
+    .drive { background-color: #28a745; }
+    .drive:hover { background-color: #1c7c31; }
+    .gls { background-color: #ff8c00; }
+    .gls:hover { background-color: #cc6f00; }
+    .showroom { background-color: #8e44ad; }
+    .showroom:hover { background-color: #6c3483; }
+
+    .row { margin-top: 16px; text-align:center; }
+    label { display:block; font-weight:600; margin:6px 0; }
+    input[type="number"], input[type="text"]{
+      padding:10px; border:1px solid #ccc; border-radius:8px; text-align:center; font-size:16px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      height: 150px;
+      margin-top: 6px;
+    }
+    small.muted{color:#666}
+  </style>
+
+  <!-- Librairie PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <script>
+    const WEBHOOK_GLS = "https://hook.eu1.make.com/brxbqvpfpgh2mgrwuvpm5gui6qojznwn";
+    const WEBHOOK_RETRAIT = "https://hook.eu1.make.com/eh9gjwpilx7uta7o587l2zoz0hvm5g3p";
+
+    async function sendToWebhook(url, payload){
+      const res = await fetch(url, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+      });
+      return res.ok;
+    }
+
+    // --- Étiquette GLS ---
+    async function createGLS(){
+      const qtyEl = document.getElementById("gls-qty");
+      const btn = document.getElementById("btn-gls");
+      const qty = Math.max(1, parseInt(qtyEl.value,10) || 1);
+      btn.disabled = true; btn.innerHTML="⏳ Création…";
+
+      const payload = {
+        action:"create_gls_label",
+        nb_colis: qty,
+        context:{
+          name: "Valide_BAT-84997-V1.pdf",
+          preview_url: "https://drive.google.com/file/d/1M37UgkW_gV2CjozeUuzR2cuGnkfmGy1j/preview",
+          upload_url: "https://forms.fillout.com/t/jmLpPYCEfxus?ref=1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          compare_url: "",
+          drive_folder: "https://drive.google.com/drive/folders/1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          drive_file_id:"1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          id_devis_sellsy:"53123439",
+          id_opp_sellsy:"11237643",
+          number_devis:"DEV-20251121-08497",
+          name_client:"CORBEIL AUTO PERFORMANCE FOURNIER",
+          id_company:"46370231",
+          mail_client:"pfournier@cap-fournier.fr",
+prenom:"Philippe"
+
+
+        },
+        client:{ip:(window.__client_ip||""), ua:navigator.userAgent, at:new Date().toISOString()}
+      };
+      const ok = await sendToWebhook(WEBHOOK_GLS, payload);
+      alert(ok ? "✅ Étiquette GLS envoyée à Make !" : "❌ Échec de l’envoi.");
+      btn.disabled=false; btn.innerHTML="🚚 Créer l’étiquette de transport";
+    }
+
+    // --- Retrait showroom ---
+    function getSignatureData(){return document.getElementById("signature-pad").toDataURL("image/png");}
+
+    async function createPDF(name, sigData){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Bon de retrait showroom",20,20);
+      doc.setFontSize(12);
+      doc.text(`Nom du retraitant : ${name}`,20,40);
+      doc.text(`Client : CORBEIL AUTO PERFORMANCE FOURNIER`,20,50);
+      doc.text(`N° de devis : DEV-20251121-08497`,20,60);
+      doc.text(`Date : ${new Date().toLocaleString("fr-FR")}`,20,70);
+      doc.text("Signature :",20,90);
+      const img = new Image(); img.src = sigData;
+      await new Promise(r=>img.onload=r);
+      doc.addImage(img,"PNG",20,95,80,40);
+      return doc.output("datauristring").split(",")[1];
+    }
+
+    async function sendRetrait(){
+      const name=document.getElementById("retrait-name").value.trim();
+      const sigData=getSignatureData();
+      if(!name) return alert("Merci d’indiquer le prénom du retraitant.");
+      const btn=document.getElementById("btn-retrait");
+      btn.disabled=true; btn.innerHTML="⏳ Génération PDF...";
+      const pdfBase64=await createPDF(name,sigData);
+      const payload={
+        action:"create_showroom_retrait",
+        context:{
+         name: "Valide_BAT-84997-V1.pdf",
+          preview_url: "https://drive.google.com/file/d/1M37UgkW_gV2CjozeUuzR2cuGnkfmGy1j/preview",
+          upload_url: "https://forms.fillout.com/t/jmLpPYCEfxus?ref=1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          compare_url: "",
+          drive_folder: "https://drive.google.com/drive/folders/1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          drive_file_id:"1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV",
+          id_devis_sellsy:"53123439",
+          id_opp_sellsy:"11237643",
+          number_devis:"DEV-20251121-08497",
+          name_client:"CORBEIL AUTO PERFORMANCE FOURNIER",
+          id_company:"46370231",
+          mail_client:"pfournier@cap-fournier.fr",
+prenom:"Philippe"
+
+
+        },
+        retrait:{name, signature:sigData, pdf_base64:pdfBase64},
+        client:{ua:navigator.userAgent, at:new Date().toISOString()}
+      };
+      btn.innerHTML="📤 Envoi à Make...";
+      const ok=await sendToWebhook(WEBHOOK_RETRAIT,payload);
+      alert(ok ? "✅ Retrait showroom enregistré !" : "❌ Erreur d’envoi.");
+      btn.disabled=false; btn.innerHTML="📋 Enregistrer le retrait showroom";
+    }
+
+    // --- Dessin signature ---
+    window.onload=()=>{
+      const canvas=document.getElementById("signature-pad");
+      const ctx=canvas.getContext("2d");
+      let draw=false;
+      const start=()=>{draw=true; ctx.beginPath();};
+      const end=()=>{draw=false;};
+      const move=e=>{
+        if(!draw) return;
+        const rect=canvas.getBoundingClientRect();
+        const x=e.offsetX??(e.touches?.[0].clientX-rect.left);
+        const y=e.offsetY??(e.touches?.[0].clientY-rect.top);
+        ctx.lineWidth=2; ctx.lineCap="round"; ctx.strokeStyle="#000";
+        ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);
+      };
+      canvas.addEventListener("mousedown",start);
+      canvas.addEventListener("mouseup",end);
+      canvas.addEventListener("mousemove",move);
+      canvas.addEventListener("touchstart",start);
+      canvas.addEventListener("touchend",end);
+      canvas.addEventListener("touchmove",move);
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Valide_BAT-84997-V1.pdf</h1>
+    <p>Merci de suivre les étapes de validation ci-dessous :</p>
+
+    <!-- Liens -->
+    <button onclick="window.open('https://drive.google.com/file/d/1M37UgkW_gV2CjozeUuzR2cuGnkfmGy1j/preview','_blank')">📄 Visualiser le BAT</button><br>
+    <button onclick="window.open('https://forms.fillout.com/t/jmLpPYCEfxus?ref=1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV','_blank')">📸 Envoyer les fichiers de production</button><br>
+    <button onclick="window.open('','_blank')">🔍 Comparer le BAT et le premier test</button><br>
+    <button class="drive" onclick="window.open('https://drive.google.com/drive/folders/1I2q_PQe2w7dYQyRz2-0oK0offOuCy-KV','_blank')">📂 Accéder au dossier</button>
+
+    <!-- Bloc transport GLS -->
+    <div class="row">
+      <label for="gls-qty">Nombre de colis</label>
+      <input id="gls-qty" type="number" min="1" step="1" value="1" />
+      <div><small class="muted">Indique le nombre d’étiquettes retrait à générer.</small></div>
+      <button id="btn-gls" class="gls" onclick="createGLS()"> Créer l’étiquette de retrait</button>
+    </div>
+
+    <!-- Bloc retrait showroom -->
+    <div class="row" style="margin-top:24px">
+      <h2>📋 Retrait showroom</h2>
+      <label for="retrait-name">Prénom du retraitant</label>
+      <input id="retrait-name" type="text" placeholder="Ex : Laura" />
+      <label>Signature</label>
+      <canvas id="signature-pad"></canvas>
+      <small class="muted">Signez ci-dessus avec le doigt ou la souris.</small><br>
+      <button id="btn-retrait" class="showroom" onclick="sendRetrait()">📋 Enregistrer le retrait showroom</button>
+    </div>
+  </div>
+</body>
+</html>
