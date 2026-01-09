@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validation de production - Valide_BAT-08367-V1.pdf</title>
+
+  <!-- AJOUT IP GUARD -->
+  <style>
+    body{visibility:hidden;margin:0;}
+    #app{display:none;}
+  </style>
+  <script>
+    // Prefixes IP autorisés (ici uniquement la plage Freebox Pro)
+    const ALLOWED_IP_PREFIXES = [
+      "82.96.163."   // toute la plage 82.96.163.x
+    ];
+
+    // Mot de passe de secours si l'IP n'est pas autorisée
+    const PASSWORD = "ENNOTEX2025!"; // à modifier si besoin
+
+    function isAllowedIP(ip){
+      if (!ip) return false;
+      return ALLOWED_IP_PREFIXES.some(prefix => ip.startsWith(prefix));
+    }
+
+    function showApp(){
+      document.body.style.visibility = "visible";
+      const app = document.getElementById("app");
+      if (app) app.style.display = "block";
+      const overlay = document.getElementById("ip-guard-overlay");
+      if (overlay) overlay.remove();
+    }
+
+    function ipGuardShowError(message){
+      const msg = document.getElementById("ip-guard-error");
+      if (msg){
+        msg.textContent = message || "Mot de passe incorrect.";
+        msg.style.display = "block";
+      }
+    }
+
+    // Appelé par le bouton "Déverrouiller"
+    function ipGuardCheckPassword(){
+      const input = document.getElementById("ip-guard-password");
+      if (!input) return;
+      const val = (input.value || "").trim();
+      if (val === PASSWORD){
+        // on mémorise la validation pour la session
+        try{ sessionStorage.setItem("ip_guard_ok", "1"); }catch{}
+        showApp();
+      }else{
+        ipGuardShowError("Mot de passe incorrect.");
+      }
+    }
+
+    function deny(){
+      const ip = window.__client_ip || "inconnue";
+
+      let overlay = document.getElementById("ip-guard-overlay");
+      if (!overlay){
+        overlay = document.createElement("div");
+        overlay.id = "ip-guard-overlay";
+        overlay.style.position = "fixed";
+        overlay.style.inset = "0";
+        overlay.style.display = "flex";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.background = "linear-gradient(135deg,#f5f7fa,#e4e7ec)";
+
+        overlay.innerHTML = `
+          <div style="max-width:560px;width:90%;padding:24px;border-radius:12px;box-shadow:0 0 18px rgba(0,0,0,.12);background:#fff;font-family:Arial,sans-serif;text-align:center">
+            <h2 style="margin:0 0 8px">Accès refusé</h2>
+            <p style="margin:0 0 12px">Cette page est réservée aux ateliers ENNOTEX.</p>
+            <p style="margin:0 0 8px;font-size:13px;color:#444">
+              IP détectée : <strong>${ip}</strong>
+            </p>
+            <p style="margin:0 0 12px;font-size:13px;color:#666">
+              Si vous êtes sur site et que l’accès est bloqué, entrez le mot de passe atelier ci-dessous.
+            </p>
+
+            <div style="margin-bottom:8px">
+              <input
+                id="ip-guard-password"
+                type="password"
+                placeholder="Mot de passe atelier"
+                style="padding:8px 10px;width:70%;max-width:260px;border-radius:6px;border:1px solid #ccc;font-size:14px;"
+              />
+            </div>
+            <div id="ip-guard-error" style="display:none;margin-bottom:8px;font-size:13px;color:#c00;"></div>
+            <button
+              type="button"
+              onclick="ipGuardCheckPassword()"
+              style="padding:10px 18px;border:none;border-radius:6px;background:#0033cc;color:#fff;font-size:14px;cursor:pointer;"
+            >
+              Déverrouiller
+            </button>
+          </div>
+        `;
+        document.body.appendChild(overlay);
+      }
+
+      document.body.style.visibility = "visible";
+    }
+
+    (async () => {
+      try {
+        // si déjà validé par mot de passe pour cette session → on ne refait pas le check IP
+        try{
+          if (sessionStorage.getItem("ip_guard_ok") === "1"){
+            showApp();
+            return;
+          }
+        }catch{}
+
+        let ip = "";
+
+        // 🔒 IPv4 UNIQUEMENT (on force ipv=4)
+        try {
+          const r4 = await fetch("https://api.ipify.org?format=json&ipv=4", {cache:"no-store"});
+          ip = (await r4.json()).ip || "";
+        } catch {}
+
+        ip = (ip || "").toLowerCase();
+        window.__client_ip = ip;
+
+        if (isAllowedIP(ip)) {
+          showApp();
+        } else {
+          deny();
+        }
+
+      } catch {
+        deny();
+      }
+    })();
+  </script>
+
+  <noscript>
+    <style>body{visibility:visible}</style>
+    <div style="padding:16px;background:#fff3cd;color:#664d03;text-align:center">
+      JavaScript requis pour accéder à cette page.
+    </div>
+  </noscript>
+  <!-- /AJOUT IP GUARD -->
+
+
+  <!-- STYLE -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: url('https://ennotex.github.io/assets/bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background-color: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 { margin-bottom: 20px; }
+    button {
+      margin: 10px 0;
+      padding: 15px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #0033cc;
+      color: white;
+      transition: background-color 0.2s ease;
+    }
+    button:hover { background-color: #001a80; }
+    .drive { background-color: #28a745; }
+    .drive:hover { background-color: #1c7c31; }
+    .gls { background-color: #ff8c00; }
+    .gls:hover { background-color: #cc6f00; }
+    .row { margin-top: 6px; }
+    .row label { display:block; font-weight:600; margin-bottom:6px; }
+    .row input[type="number"]{
+      width: 140px; padding:10px; border:1px solid #ccc; border-radius:8px;
+      text-align:center; font-size:16px;
+    }
+    small.muted{color:#666}
+  </style>
+
+  <!-- LOGIQUE WEBHOOK + GLS -->
+  <script>
+    const WEBHOOK_URL = "https://hook.eu1.make.com/brxbqvpfpgh2mgrwuvpm5gui6qojznwn";
+
+    async function safeJson(r){
+      try{ return await r.json(); }catch{return null; }
+    }
+
+    async function sendToWebhook(payload){
+      try{
+        const r = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          cache: "no-store",
+          mode: "cors"
+        });
+        if (r.ok) return { ok:true, via:"fetch", status:r.status, data: await safeJson(r) };
+        throw new Error("HTTP "+r.status);
+      }catch(e){
+        try{
+          if (navigator.sendBeacon){
+            const blob = new Blob([JSON.stringify(payload)], {type:"application/json"});
+            navigator.sendBeacon(WEBHOOK_URL, blob);
+            return { ok:true, via:"beacon" };
+          }
+        }catch{}
+        try{
+          const qs = new URLSearchParams({
+            data: btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+          });
+          const img = new Image();
+          img.src = WEBHOOK_URL + "?" + qs.toString();
+          return { ok:true, via:"img" };
+        }catch{}
+        return { ok:false, error: e?.message || "send failed" };
+      }
+    }
+
+    async function createGLS(){
+      const qtyEl = document.getElementById("gls-qty");
+      const btn = document.getElementById("btn-gls");
+      const qty = Math.max(1, parseInt(qtyEl.value,10) || 1);
+
+      btn.disabled = true;
+      const lbl = btn.innerHTML;
+      btn.innerHTML = "⏳ Création en cours…";
+
+      const payload = {
+        action: "create_gls_label",
+        nb_colis: qty,
+        source: "validation_production",
+        context: {
+          name: "Valide_BAT-08367-V1.pdf",
+          preview_url: "https://drive.google.com/file/d/17QVzsTej-d5Yo0qBRMigxx_-YB3U1wyv/preview",
+          upload_url: "https://forms.fillout.com/t/jmLpPYCEfxus?ref=1gP7ZAYF_4ewyjYjwRwHXxgSw9QiZRcy2",
+          compare_url: "",
+          drive_folder: "https://drive.google.com/drive/folders/1gP7ZAYF_4ewyjYjwRwHXxgSw9QiZRcy2",
+          drive_file_id:"1gP7ZAYF_4ewyjYjwRwHXxgSw9QiZRcy2",
+          id_devis_sellsy:"53123235",
+          id_opp_sellsy:"11237847",
+          number_devis:"DEV-20251106-08367",
+          name_client:"Com Wiz Me",
+          id_company:"54931746",
+          mail_client:"c.berrebi@comwizme.fr",
+          prenom:"Cyril"
+        },
+        client: {
+          ip: (window.__client_ip || ""),
+          ua: navigator.userAgent,
+          at: new Date().toISOString()
+        }
+      };
+
+      const res = await sendToWebhook(payload);
+      btn.disabled = false;
+      btn.innerHTML = lbl;
+
+      if(res.ok){
+        alert("✅ Demande envoyée.\nNombre de colis : "+qty);
+      }else{
+        alert("❌ Échec d’envoi au webhook.\nDétail : "+(res.error||""));
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div id="app">
+    <div class="container">
+      <h1>Valide_BAT-08367-V1.pdf</h1>
+      <p>Merci de suivre les étapes de validation ci-dessous :</p>
+
+      <button onclick="window.open('https://drive.google.com/file/d/17QVzsTej-d5Yo0qBRMigxx_-YB3U1wyv/preview', '_blank')">📄 Visualiser le BAT</button><br>
+      <button onclick="window.open('https://forms.fillout.com/t/jmLpPYCEfxus?ref=1gP7ZAYF_4ewyjYjwRwHXxgSw9QiZRcy2', '_blank')">📸 Envoyer les fichiers de production</button><br>
+      <button onclick="window.open('', '_blank')">🔍 Comparer le BAT et le premier test</button><br>
+      <button class="drive" onclick="window.open('https://drive.google.com/drive/folders/1gP7ZAYF_4ewyjYjwRwHXxgSw9QiZRcy2', '_blank')">📂 Accéder au Dossier</button>
+
+      <!-- Bloc transport -->
+      <div class="row" style="margin-top:18px">
+        <label for="gls-qty">Nombre de colis</label>
+        <input id="gls-qty" type="number" min="1" step="1" value="1" />
+        <div><small class="muted">Indique le nombre d’étiquettes de transport à générer.</small></div>
+        <button id="btn-gls" class="gls" onclick="createGLS()">📦 Créer l’étiquette de transport</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
