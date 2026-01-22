@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validation de production - Valide_BAT-89886-V1.pdf</title>
+
+  <!-- Styles de base -->
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; visibility:hidden; }
+    #page-main, #page-signature { display:none; }
+
+    .container {
+      background:#fff;
+      padding:28px;
+      border-radius:12px;
+      box-shadow:0 0 12px rgba(0,0,0,0.1);
+      max-width:600px;
+      width:90%;
+      margin:auto;
+      text-align:center;
+    }
+
+    button {
+      margin:10px 0;
+      padding:15px 25px;
+      font-size:16px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      color:#fff;
+    }
+    .blue { background:#0033cc; }
+    .blue:hover{ background:#001a80; }
+    .green{ background:#28a745; }
+    .orange{ background:#ff8c00; }
+    .purple{ background:#8e44ad; }
+
+    /* PAGE SIGNATURE FULLSCREEN */
+    #page-signature {
+      height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding:20px;
+      box-sizing:border-box;
+      background:#fff;
+    }
+
+    #sig-name {
+      padding:10px;
+      font-size:18px;
+      border-radius:6px;
+      border:1px solid #ccc;
+      width:100%;
+      box-sizing:border-box;
+      margin-bottom:14px;
+    }
+
+    #sig-canvas {
+      border:1px solid #ccc;
+      border-radius:8px;
+      background:#fafafa;
+      touch-action:none;
+      display:block;
+      width:100%;
+      height:45vh;
+      max-height:350px;
+      margin-bottom:14px;
+    }
+
+    #sig-buttons button {
+      width:100%;
+      margin-bottom:10px;
+      font-size:18px;
+    }
+  </style>
+
+  <!-- IP GUARD (IPv4 only + mot de passe) -->
+  <script>
+    const ALLOWED_IP_PREFIXES = ["82.96.163."]; 
+    const PASSWORD = "ENNOTEX2025!";
+
+    function isAllowedIP(ip){
+      if (!ip) return false;
+      return ALLOWED_IP_PREFIXES.some(p => ip.startsWith(p));
+    }
+
+    function showPage(id){
+      document.getElementById("page-main").style.display = "none";
+      document.getElementById("page-signature").style.display = "none";
+      document.getElementById(id).style.display = "block";
+    }
+
+    function showApp(){
+      document.body.style.visibility = "visible";
+      showPage("page-main");
+      const ov=document.getElementById("ip-guard-overlay");
+      if (ov) ov.remove();
+    }
+
+    function deny(){
+      const ip = window.__client_ip || "inconnue";
+
+      const overlay=document.createElement("div");
+      overlay.id="ip-guard-overlay";
+      overlay.style.position="fixed";
+      overlay.style.inset="0";
+      overlay.style.display="flex";
+      overlay.style.alignItems="center";
+      overlay.style.justifyContent="center";
+      overlay.style.background="#f5f5f5";
+
+      overlay.innerHTML=`
+        <div style="padding:24px;background:#fff;border-radius:12px;max-width:360px;text-align:center;box-shadow:0 0 14px rgba(0,0,0,.1)">
+          <h2 style="margin:0 0 10px">Accès refusé</h2>
+          <p>Page réservée aux ateliers ENNOTEX.</p>
+          <p style="font-size:13px;color:#555;margin:8px 0">IP détectée : <strong>${ip}</strong></p>
+          <input id="pw" type="password" placeholder="Mot de passe atelier"
+            style="margin-top:10px;padding:10px;width:90%;border-radius:6px;border:1px solid #ccc;box-sizing:border-box"/>
+          <div id="pw-error" style="display:none;margin-top:6px;color:#c00;font-size:13px"></div>
+          <button onclick="checkPw()" style="margin-top:12px;padding:10px 18px;background:#0033cc;color:#fff;border:none;border-radius:6px;cursor:pointer">Déverrouiller</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.body.style.visibility="visible";
+    }
+
+    function checkPw(){
+      const v=document.getElementById("pw").value.trim();
+      if (v===PASSWORD){
+        sessionStorage.setItem("ip_ok","1");
+        showApp();
+      } else {
+        const e=document.getElementById("pw-error");
+        e.style.display="block";
+        e.textContent="Mot de passe incorrect.";
+      }
+    }
+
+    (async ()=>{
+      if (sessionStorage.getItem("ip_ok")==="1"){
+        showApp();
+        return;
+      }
+
+      let ip="";
+      try{
+        const r4=await fetch("https://api.ipify.org?format=json&ipv=4",{cache:"no-store"});
+        ip=(await r4.json()).ip||"";
+      }catch{}
+
+      ip=ip.toLowerCase();
+      window.__client_ip=ip;
+
+      if (isAllowedIP(ip)) showApp();
+      else deny();
+    })();
+  </script>
+
+  <noscript>
+    <style>body{visibility:visible}</style>
+    <div style="padding:16px;background:#fff3cd;color:#664d03;text-align:center">JavaScript requis.</div>
+  </noscript>
+</head>
+
+<body>
+
+  <!-- PAGE PRINCIPALE -->
+  <div id="page-main">
+    <div class="container">
+      <h1>Valide_BAT-89886-V1.pdf</h1>
+      <p>Merci de suivre les étapes :</p>
+
+      <button class="blue" onclick="window.open('https://drive.google.com/file/d/1chqjqecuFfRt0S6X6tAo4WizX-DV_fyq/preview','_blank')">📄 Visualiser le BAT</button>
+      <button class="blue" onclick="window.open('https://forms.fillout.com/t/jmLpPYCEfxus?ref=1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ','_blank')">📸 Envoyer les fichiers</button>
+      <button class="blue" onclick="window.open('','_blank')">🔍 Comparer le BAT et le test</button>
+      <button class="green" onclick="window.open('https://drive.google.com/drive/folders/1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ','_blank')">📂 Dossier Drive</button>
+
+      <div style="margin-top:20px">
+        <label for="gls-qty" style="font-weight:bold">Nombre de colis</label><br>
+        <input id="gls-qty" type="number" min="1" value="1"
+          style="padding:10px;margin-top:8px;width:140px;border-radius:8px;border:1px solid #ccc;text-align:center"/>
+        <br>
+        <button id="btn-gls" class="orange" onclick="createGLS()">Créer l’étiquette de retrait </button>
+      </div>
+
+      <hr style="margin:30px 0;opacity:0.3">
+
+      <button class="purple" onclick="showPage('page-signature')">✍️ Faire signer le retrait showroom</button>
+    </div>
+  </div>
+
+  <!-- PAGE SIGNATURE (fullscreen, stable, no scroll) -->
+  <div id="page-signature">
+    <input id="sig-name" type="text" placeholder="Prénom du retraitant">
+
+    <canvas id="sig-canvas"></canvas>
+
+    <div id="sig-buttons">
+      <button class="green" onclick="sendRetrait()">📋 Valider le retrait</button>
+      <button class="blue" onclick="showPage('page-main')">↩️ Retour</button>
+    </div>
+  </div>
+
+  <!-- LIB PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- SCRIPT PRINCIPAL -->
+  <script>
+    const WEBHOOK_GLS = "https://hook.eu1.make.com/brxbqvpfpgh2mgrwuvpm5gui6qojznwn";
+    const WEBHOOK_RETRAIT = "https://hook.eu1.make.com/eh9gjwpilx7uta7o587l2zoz0hvm5g3p";
+
+    async function sendToWebhook(url, payload){
+      const res = await fetch(url,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+      });
+      return res.ok;
+    }
+
+    /* ---------- GLS ---------- */
+    async function createGLS(){
+      const qty = Math.max(1, parseInt(document.getElementById("gls-qty").value,10) || 1);
+      const btn = document.getElementById("btn-gls");
+
+      btn.disabled = true;
+      btn.textContent = "⏳ Création…";
+
+      const payload = {
+        action:"create_gls_label",
+        nb_colis: qty,
+        context:{
+          name:"Valide_BAT-89886-V1.pdf",
+          preview_url:"https://drive.google.com/file/d/1chqjqecuFfRt0S6X6tAo4WizX-DV_fyq/preview",
+          upload_url:"https://forms.fillout.com/t/jmLpPYCEfxus?ref=1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          compare_url:"",
+          drive_folder:"https://drive.google.com/drive/folders/1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          drive_file_id:"1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          id_devis_sellsy:"53124294",
+          id_opp_sellsy:"11238039",
+          number_devis:"DEV-20260122-08986",
+          name_client:"UMHS",
+          id_company:"44256260",
+          mail_client:"fournisseur2@umhs.fr",
+          prenom:"Comptabilite"
+        },
+        client:{
+          ip:window.__client_ip||"",
+          ua:navigator.userAgent,
+          at:new Date().toISOString()
+        }
+      };
+
+      const ok=await sendToWebhook(WEBHOOK_GLS,payload);
+      alert(ok?"✅ Étiquette envoyée":"❌ Erreur d’envoi");
+
+      btn.disabled=false;
+      btn.textContent="🚚 Créer l’étiquette de retrait";
+    }
+
+    /* ---------- SIGNATURE (plus de reset, stable) ---------- */
+
+    let sigCanvas, sigCtx, sigDrawing=false, sigInitialized=false;
+
+    function initSignatureCanvas(){
+      if (sigInitialized) return;
+      sigInitialized=true;
+
+      sigCanvas=document.getElementById("sig-canvas");
+      sigCtx=sigCanvas.getContext("2d");
+
+      // Dimension fixe une seule fois
+      const rect=sigCanvas.getBoundingClientRect();
+      sigCanvas.width=rect.width;
+      sigCanvas.height=rect.height;
+
+      const start=e=>{
+        sigDrawing=true;
+        sigCtx.beginPath();
+        move(e);
+      };
+      const end=()=>sigDrawing=false;
+      const move=e=>{
+        if(!sigDrawing) return;
+        const r=sigCanvas.getBoundingClientRect();
+        const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+        const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+        sigCtx.lineWidth=3;
+        sigCtx.lineCap="round";
+        sigCtx.strokeStyle="#000";
+        sigCtx.lineTo(x,y);
+        sigCtx.stroke();
+        sigCtx.beginPath();
+        sigCtx.moveTo(x,y);
+      };
+
+      sigCanvas.addEventListener("mousedown",start);
+      sigCanvas.addEventListener("mouseup",end);
+      sigCanvas.addEventListener("mouseleave",end);
+      sigCanvas.addEventListener("mousemove",move);
+
+      sigCanvas.addEventListener("touchstart",e=>{e.preventDefault();start(e);},{passive:false});
+      sigCanvas.addEventListener("touchend",e=>{e.preventDefault();end(e);},{passive:false});
+      sigCanvas.addEventListener("touchcancel",e=>{e.preventDefault();end(e);},{passive:false});
+      sigCanvas.addEventListener("touchmove",e=>{e.preventDefault();move(e);},{passive:false});
+    }
+
+    const _showPage=showPage;
+    showPage=function(id){
+      _showPage(id);
+      if(id==="page-signature"){
+        setTimeout(initSignatureCanvas,50);
+      }
+    };
+
+    /* ---------- PDF + SEND RETRAIT ---------- */
+    async function sendRetrait(){
+      const name=document.getElementById("sig-name").value.trim();
+      if(!name) return alert("Merci d’indiquer le prénom.");
+
+      const sigData=sigCanvas.toDataURL("image/png");
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF();
+
+      doc.setFontSize(18);
+      doc.text("Bon de retrait showroom",20,20);
+      doc.setFontSize(12);
+      doc.text(`Nom du retraitant : ${name}`,20,40);
+      doc.text(`Client : UMHS`,20,50);
+      doc.text(`N° de devis : DEV-20260122-08986`,20,60);
+      doc.text(`Date : ${new Date().toLocaleString("fr-FR")}`,20,70);
+
+      doc.text("Signature :",20,90);
+      const img=new Image();
+      img.src=sigData;
+      await new Promise(r=>img.onload=r);
+      doc.addImage(img,"PNG",20,95,80,40);
+
+      const pdfBase64=doc.output("datauristring").split(",")[1];
+
+      const payload={
+        action:"create_showroom_retrait",
+        context:{
+          name:"Valide_BAT-89886-V1.pdf",
+          preview_url:"https://drive.google.com/file/d/1chqjqecuFfRt0S6X6tAo4WizX-DV_fyq/preview",
+          upload_url:"https://forms.fillout.com/t/jmLpPYCEfxus?ref=1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          compare_url:"",
+          drive_folder:"https://drive.google.com/drive/folders/1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          drive_file_id:"1Zah5_s9vRywotz24pqBTTOcMM50EJUaQ",
+          id_devis_sellsy:"53124294",
+          id_opp_sellsy:"11238039",
+          number_devis:"DEV-20260122-08986",
+          name_client:"UMHS",
+          id_company:"44256260",
+          mail_client:"fournisseur2@umhs.fr",
+          prenom:"Comptabilite"
+        },
+        retrait:{name, signature:sigData, pdf_base64:pdfBase64},
+        client:{ua:navigator.userAgent, at:new Date().toISOString()}
+      };
+
+      const ok=await sendToWebhook(WEBHOOK_RETRAIT,payload);
+      alert(ok?"✅ Retrait showroom enregistré":"❌ Erreur d’envoi");
+
+      showPage("page-main");
+    }
+  </script>
+
+</body>
+</html>
