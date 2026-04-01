@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expédition - DEVINCILUMIÈRE - EMLV</title>
+
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; visibility:hidden; background:#f4f7f6; }
+    .container {
+      background:#fff;
+      padding:30px;
+      border-radius:15px;
+      box-shadow:0 4px 15px rgba(0,0,0,0.08);
+      max-width:450px;
+      width:90%;
+      margin:60px auto;
+      text-align:center;
+    }
+    h1 { color: #2c3e50; font-size: 20px; margin-bottom: 25px; }
+    button {
+      display: block;
+      width: 100%;
+      margin:12px 0;
+      padding:16px;
+      font-size:16px;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      color:#fff;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled { background:#ccc; cursor: not-allowed; }
+    
+    .btn-photo { background:#3498db; } /* Bleu */
+    .btn-drive { background:#27ae60; } /* Vert */
+    .btn-gls { background:#e67e22; margin-top: 15px; }   /* Orange */
+    
+    .card-labels {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    input[type="number"] {
+      padding:12px;
+      width:70px;
+      border-radius:8px;
+      border:2px solid #ddd;
+      text-align:center;
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    label { display:block; margin-bottom:8px; color: #7f8c8d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  </style>
+
+  <script>
+    /* SÉCURITÉ IP & MOT DE PASSE */
+    const ALLOWED_IP_PREFIXES = ["82.96.163."]; 
+    const PASSWORD = "ENNOTEX2025!";
+
+    function showApp(){
+      document.body.style.visibility = "visible";
+      const ov=document.getElementById("ip-guard-overlay");
+      if (ov) ov.remove();
+    }
+
+    function deny(){
+      const ip = window.__client_ip || "inconnue";
+      const overlay=document.createElement("div");
+      overlay.id="ip-guard-overlay";
+      overlay.style.position="fixed";
+      overlay.style.inset="0";
+      overlay.style.display="flex";
+      overlay.style.alignItems="center";
+      overlay.style.justifyContent="center";
+      overlay.style.background="#f5f5f5";
+      overlay.style.zIndex="9999";
+      overlay.innerHTML=`
+        <div style="padding:24px;background:#fff;border-radius:12px;max-width:360px;text-align:center;box-shadow:0 0 14px rgba(0,0,0,.1)">
+          <h2 style="margin:0 0 10px">Accès Atelier</h2>
+          <p style="font-size:13px;color:#555;margin:8px 0">IP : <strong>${ip}</strong></p>
+          <input id="pw" type="password" placeholder="Mot de passe"
+            style="margin-top:10px;padding:12px;width:90%;border-radius:6px;border:1px solid #ccc;box-sizing:border-box"/>
+          <div id="pw-error" style="display:none;margin-top:6px;color:#c00;font-size:13px"></div>
+          <button onclick="checkPw()" style="margin-top:12px;padding:12px;background:#2c3e50;color:#fff;border:none;border-radius:6px;cursor:pointer;width:100%">Déverrouiller</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+      document.body.style.visibility="visible";
+    }
+
+    function checkPw(){
+      if (document.getElementById("pw").value.trim()===PASSWORD){
+        sessionStorage.setItem("ip_ok","1");
+        showApp();
+      } else {
+        const e=document.getElementById("pw-error");
+        e.style.display="block";
+        e.textContent="Mot de passe incorrect.";
+      }
+    }
+
+    (async ()=>{
+      if (sessionStorage.getItem("ip_ok")==="1") return showApp();
+      let ip="";
+      try{
+        const r=await fetch("https://api.ipify.org?format=json");
+        ip=(await r.json()).ip||"";
+      }catch{}
+      window.__client_ip=ip;
+      if (ip.startsWith(ALLOWED_IP_PREFIXES[0])) showApp();
+      else deny();
+    })();
+  </script>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>DEVINCILUMIÈRE - EMLV</h1>
+
+    <button class="btn-photo" onclick="window.open('https://forms.fillout.com/t/jmLpPYCEfxus?ref=1K6Z-uGmCPbZR_btARsuaOpQ7xUn9Hbx-','_blank')">📸 Envoyer des photos</button>
+    <button class="btn-drive" onclick="window.open('https://drive.google.com/drive/folders/1K6Z-uGmCPbZR_btARsuaOpQ7xUn9Hbx-','_blank')">📂 Accès Dossier Drive</button>
+
+    <div class="card-labels">
+      <label for="gls-qty">Nombre de colis</label>
+      <input id="gls-qty" type="number" min="1" value="1">
+      <button id="btn-gls" class="btn-gls" onclick="createGLS()">🚚 Créer étiquettes retrait</button>
+    </div>
+  </div>
+
+  <script>
+    // URL mise à jour avec le nouveau Webhook
+    const WEBHOOK_URL = "https://hook.eu1.make.com/blpu0p485x3r4gj45ccbqu81zbigcxe0";
+
+    async function createGLS(){
+      const qty = Math.max(1, parseInt(document.getElementById("gls-qty").value, 10) || 1);
+      const btn = document.getElementById("btn-gls");
+
+      btn.disabled = true;
+      btn.textContent = "⌛ Envoi en cours...";
+
+      const payload = {
+        trade_id: "19d497fb5a4b10d4", 
+        nb_colis: qty,
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        
+        if(res.ok) {
+          alert("✅ Demande d'étiquettes transmise !");
+        } else {
+          // Nouveau message d'erreur personnalisé
+          alert("❌ Erreur 500 : contacter Léo");
+        }
+      } catch(e) {
+        alert("❌ Erreur réseau. Vérifiez votre connexion.");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "🚚 Créer étiquettes retrait";
+    }
+  </script>
+
+</body>
+</html>
